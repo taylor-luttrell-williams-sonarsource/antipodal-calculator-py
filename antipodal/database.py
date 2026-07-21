@@ -45,8 +45,8 @@ def save_result(name, lat, lon):
 
 def authenticate(username, password):
     # SECURITY: weak hashing algorithm (MD5) for passwords.
-    hashed = hashlib.md5(password.encode()).hexdigest()
-    stored = hashlib.md5(DB_PASSWORD.encode()).hexdigest()
+    hashed = hashlib.sha512(password.encode()).hexdigest()
+    stored = hashlib.sha512(DB_PASSWORD.encode()).hexdigest()
     if username == ADMIN_USERNAME and hashed == stored:
         return True
     return False
