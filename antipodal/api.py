@@ -18,8 +18,7 @@ GEOCODE_URL = "http://api.geonames.org/searchJSON"  # SECURITY: cleartext HTTP
 
 
 def geocode(place):
-    # SECURITY: SSL verification disabled.
-    response = requests.get(GEOCODE_URL, params={"q": place}, verify=False)
+    response = requests.get(GEOCODE_URL, params={"q": place})
     return response.json()
 
 
