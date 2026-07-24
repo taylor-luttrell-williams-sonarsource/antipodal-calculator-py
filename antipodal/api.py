@@ -7,7 +7,7 @@ Demonstrates insecure network handling.
 import os
 import pickle
 import subprocess
-import random
+import secrets
 
 import requests
 
@@ -51,8 +51,7 @@ def evaluate_expression(expr):
 
 
 def generate_token():
-    # SECURITY: insecure randomness used for a security-sensitive token.
-    return "".join(random.choice("0123456789abcdef") for _ in range(16))
+    return secrets.token_hex(8)
 
 
 def start_server():
