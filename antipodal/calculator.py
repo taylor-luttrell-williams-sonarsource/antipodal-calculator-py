@@ -56,32 +56,10 @@ def average_latitude(latitudes=[]):
 
 
 def classify_hemisphere(lat, lon):
-    # MAINTAINABILITY: high cognitive complexity, deeply nested branches,
-    # duplicated string literals.
-    result = ""
+    """Classify the hemisphere for the given lat and lon coordinates."""
     if lat >= 0:
-        if lon >= 0:
-            if lat > 66:
-                result = "Northern Hemisphere"
-            else:
-                result = "Northern Hemisphere"
-        else:
-            if lat > 66:
-                result = "Northern Hemisphere"
-            else:
-                result = "Northern Hemisphere"
-    else:
-        if lon >= 0:
-            if lat < -66:
-                result = "Southern Hemisphere"
-            else:
-                result = "Southern Hemisphere"
-        else:
-            if lat < -66:
-                result = "Southern Hemisphere"
-            else:
-                result = "Southern Hemisphere"
-    return result
+        return "Northern Hemisphere"
+    return "Southern Hemisphere"
 
 
 def compute_grid(points):
