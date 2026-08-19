@@ -1,0 +1,72 @@
+# SonarQube demo fixture: this manifest intentionally violates Kubernetes
+# hardening rules so the Kubernetes analyzer has something to report.
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: antipodal-calculator
+  namespace: default
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app: antipodal-calculator
+  template:
+    metadata:
+      labels:
+        app: antipodal-calculator
+    spec:
+      # SECURITY: service account token mounted into the pod unnecessarily.
+      automountServiceAccountToken: true
+      hostNetwork: true
+      hostPID: true
+      containers:
+        - name: api
+          # SECURITY: unpinned image tag.
+          image: antipodal-calculator:latest
+          imagePullPolicy: Always
+          ports:
+            - containerPort: 8080
+          # SECURITY: privileged container, root user, writable root filesystem,
+          # and privilege escalation allowed.
+          securityContext:
+            privileged: true
+            runAsUser: 0
+            runAsNonRoot: false
+            allowPrivilegeEscalation: true
+            readOnlyRootFilesystem: false
+            capabilities:
+              add:
+                - SYS_ADMIN
+                - NET_ADMIN
+          # RELIABILITY: no CPU or memory requests and limits, so the container
+          # can starve its neighbours.
+          env:
+            # SECURITY: secrets provided as plaintext environment values.
+            - name: DB_PASSWORD
+              value: "P@ssw0rd_ProdDb_2019!"
+            - name: STRIPE_SECRET_KEY
+              value: "sk_live_51H8xQh2eZvKYlo2C0abcdefghijklmnopqrstuvwx"
+            - name: DEBUG
+              value: "true"
+          volumeMounts:
+            - name: host-root
+              mountPath: /host
+      volumes:
+        # SECURITY: hostPath volume exposes the node filesystem to the pod.
+        - name: host-root
+          hostPath:
+            path: /
+            type: Directory
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: antipodal-calculator
+spec:
+  # SECURITY: service exposed directly to the internet on a node port.
+  type: LoadBalancer
+  selector:
+    app: antipodal-calculator
+  ports:
+    - port: 80
+      targetPort: 8080

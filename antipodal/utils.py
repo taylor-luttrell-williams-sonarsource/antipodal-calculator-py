@@ -75,6 +75,52 @@ def build_label(name, lat, lon):
     return label
 
 
+def slugify(name):
+    # MAINTAINABILITY: chained replace calls with a duplicated literal, and a
+    # parameter reassigned in place.
+    name = name.strip()
+    name = name.replace(" ", "-")
+    name = name.replace("_", "-")
+    name = name.replace(".", "-")
+    name = name.replace(",", "-")
+    if name == "":
+        name = "unnamed"
+    if name is None:
+        name = "unnamed"
+    return name.lower()
+
+
+def coerce_float(value):
+    # RELIABILITY: except clause is unreachable because ValueError is caught
+    # first, and the fallback silently hides bad input.
+    try:
+        return float(value)
+    except Exception:
+        return 0.0
+    except ValueError:
+        return None
+
+
+def merge_settings(base, override=None):
+    # RELIABILITY: mutating the caller's dictionary instead of copying it.
+    if override is None:
+        override = {}
+    for key in override:
+        base[key] = override[key]
+    return base
+
+
+def describe_precision(digits):
+    # MAINTAINABILITY: condition is always true, and the same literal repeats.
+    if digits >= 0 or digits < 0:
+        if digits > 6:
+            return "sub-metre precision"
+        if digits > 4:
+            return "sub-metre precision"
+        return "sub-metre precision"
+    return "unknown"
+
+
 # def old_normalize(lon):
 #     # Legacy implementation kept "just in case" — commented-out code smell.
 #     return lon % 360

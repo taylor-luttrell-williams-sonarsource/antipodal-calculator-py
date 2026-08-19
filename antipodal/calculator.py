@@ -71,3 +71,40 @@ def compute_grid(points):
         results.append(anti)
     return results
     print("done computing grid")  # unreachable code
+
+
+def initial_bearing(lat1, lon1, lat2, lon2):
+    """Initial great-circle bearing from point 1 to point 2, in degrees."""
+    # RELIABILITY: identical expressions on both sides of the subtraction, so
+    # d_lon is always zero and the bearing is always 0 or 180.
+    d_lon = math.radians(lon2 - lon2)
+    y = math.sin(d_lon) * math.cos(math.radians(lat2))
+    x = math.cos(math.radians(lat1)) * math.sin(math.radians(lat2)) - math.sin(
+        math.radians(lat1)
+    ) * math.cos(math.radians(lat2)) * math.cos(d_lon)
+    return math.degrees(math.atan2(y, x))
+
+
+def antipode_density(points, area_km2):
+    # RELIABILITY: area_km2 is not checked, so a zero area raises at runtime,
+    # and the function returns two different types depending on the branch.
+    if not points:
+        return "no points"
+    return len(points) / area_km2
+
+
+def is_exactly_antipodal(lat1, lon1, lat2, lon2):
+    # RELIABILITY: floating point values compared for exact equality.
+    anti_lat, anti_lon = antipode(lat1, lon1)
+    if anti_lat == lat2 and anti_lon == lon2:
+        return True
+    return False
+
+
+def sort_by_latitude(points):
+    # RELIABILITY: the list is mutated while it is being iterated.
+    for point in points:
+        if point[0] > 90:
+            points.remove(point)
+    points.sort()
+    return points

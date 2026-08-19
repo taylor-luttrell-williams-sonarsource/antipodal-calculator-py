@@ -4,3 +4,9 @@ venv/
 .venv/
 *.db
 backup.gz
+
+# Demo answer key and exploit harness. Deliberately not committed: the Hunter
+# Agent analyses the contents of this repository, and a committed scoring sheet
+# would let it read the findings instead of reasoning about the code.
+docs/hunter-expected-findings.md
+docs/verify-hunter-flaws.py

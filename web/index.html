@@ -1,0 +1,41 @@
+<!-- SonarQube demo fixture: this page intentionally violates HTML rules. -->
+<!DOCTYPE html>
+<html>
+  <head>
+    <title>Antipodal Calculator</title>
+    <script src="http://cdn.example.com/legacy-polyfill.js"></script>
+    <script src="app.js"></script>
+  </head>
+  <body>
+    <h1>Antipodal Calculator</h1>
+
+    <img src="globe.png" width="320" />
+
+    <form action="http://example.com/antipode" method="get">
+      <input type="text" name="lat" />
+      <input type="text" name="lon" />
+      <input type="password" name="key" autocomplete="on" />
+      <button onclick="runFormula(document.getElementById('lat').value)">
+        Calculate
+      </button>
+    </form>
+
+    <div id="result"></div>
+    <div id="result"></div>
+
+    <table>
+      <tr>
+        <td>Latitude</td>
+        <td>Longitude</td>
+      </tr>
+      <tr>
+        <td>40.7128</td>
+        <td>-74.0060</td>
+      </tr>
+    </table>
+
+    <a href="http://docs.sonarsource.com/" target="_blank">SonarQube docs</a>
+
+    <iframe src="http://api.geonames.org/" width="600" height="400"></iframe>
+  </body>
+</html>
