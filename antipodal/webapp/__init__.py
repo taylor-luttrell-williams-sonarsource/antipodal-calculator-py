@@ -12,6 +12,8 @@ from flask import Flask, jsonify, request
 from antipodal.config import SECRET_KEY, DEBUG
 from antipodal.webapp import store
 
+AUTHENTICATION_REQUIRED_ERROR = "authentication required"
+
 
 def login_required(view):
     """Require an authenticated session.
@@ -25,22 +27,31 @@ def login_required(view):
     def wrapper(*args, **kwargs):
         _, session = store.get_session()
         if session is None:
-            return jsonify({"error": "authentication required"}), 401
+            return jsonify({"error": AUTHENTICATION_REQUIRED_ERROR}), 401
         return view(*args, **kwargs)
 
     return wrapper
 
 
 def admin_required(view):
-    """Require an authenticated session belonging to an account with the admin role."""
+    """Require an authenticated session belonging to an account with the admin role.
+
+    Accounts with MFA enabled must also have completed the second factor on
+    the current session before an admin action is allowed to proceed.
+    """
 
     @functools.wraps(view)
     def wrapper(*args, **kwargs):
-        user = store.current_user()
+        _, session = store.get_session()
+        if session is None:
+            return jsonify({"error": AUTHENTICATION_REQUIRED_ERROR}), 401
+        user = store.USERS.get(session["user_id"])
         if user is None:
-            return jsonify({"error": "authentication required"}), 401
+            return jsonify({"error": AUTHENTICATION_REQUIRED_ERROR}), 401
         if user["role"] != "admin":
             return jsonify({"error": "admin role required"}), 403
+        if user.get("mfa_enabled") and session.get("mfa_complete") is not True:
+            return jsonify({"error": "mfa required"}), 403
         return view(*args, **kwargs)
 
     return wrapper
