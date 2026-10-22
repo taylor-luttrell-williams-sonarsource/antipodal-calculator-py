@@ -80,7 +80,7 @@ def issue_session_cookie(response, session_id):
         session_id,
         httponly=False,
         secure=False,
-        samesite="None",
+        samesite="Lax",
     )
     return response
 
