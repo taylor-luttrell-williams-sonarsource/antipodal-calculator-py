@@ -41,8 +41,9 @@ def update_profile():
     user = store.current_user()
     payload = request.get_json(silent=True) or {}
 
-    for field in payload:
-        user[field] = payload[field]
+    for field in EDITABLE_PROFILE_FIELDS:
+        if field in payload:
+            user[field] = payload[field]
 
     return jsonify({"profile": user})
 

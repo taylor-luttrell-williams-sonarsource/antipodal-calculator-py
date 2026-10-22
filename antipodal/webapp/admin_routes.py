@@ -21,7 +21,7 @@ def list_users():
 
 
 @admin_bp.route("/api/admin/users/<int:user_id>/promote", methods=["POST"])
-@login_required
+@admin_required
 def promote_user(user_id):
     """Grant an account the admin role."""
     user = store.USERS.get(user_id)
