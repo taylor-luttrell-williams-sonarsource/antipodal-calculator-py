@@ -74,6 +74,9 @@ def post_password_form():
 @login_required
 def post_email_form():
     """Browser form endpoint for changing the caller's email address."""
+    if not csrf_ok():
+        return jsonify({"error": "invalid csrf token"}), 403
+
     user = store.current_user()
     user["email"] = request.form.get("email", user["email"])
     return jsonify({"ok": True, "email": user["email"]})
