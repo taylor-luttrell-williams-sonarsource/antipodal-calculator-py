@@ -83,6 +83,9 @@ def post_email_form():
 @login_required
 def post_delete_form():
     """Browser form endpoint for closing the caller's account permanently."""
+    if not csrf_ok():
+        return jsonify({"error": "invalid csrf token"}), 403
+
     user = store.current_user()
 
     for location_id in list(store.LOCATIONS):
