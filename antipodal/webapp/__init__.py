@@ -12,6 +12,8 @@ from flask import Flask, jsonify, request
 from antipodal.config import SECRET_KEY, DEBUG
 from antipodal.webapp import store
 
+_AUTH_REQUIRED_ERROR = "authentication required"
+
 
 def login_required(view):
     """Require an authenticated session.
@@ -25,7 +27,12 @@ def login_required(view):
     def wrapper(*args, **kwargs):
         _, session = store.get_session()
         if session is None:
-            return jsonify({"error": "authentication required"}), 401
+            return jsonify({"error": _AUTH_REQUIRED_ERROR}), 401
+        user = store.USERS.get(session["user_id"])
+        if user is None:
+            return jsonify({"error": _AUTH_REQUIRED_ERROR}), 401
+        if user.get("mfa_enabled") and not session.get("mfa_complete"):
+            return jsonify({"error": "mfa required"}), 401
         return view(*args, **kwargs)
 
     return wrapper
@@ -38,7 +45,10 @@ def admin_required(view):
     def wrapper(*args, **kwargs):
         user = store.current_user()
         if user is None:
-            return jsonify({"error": "authentication required"}), 401
+            return jsonify({"error": _AUTH_REQUIRED_ERROR}), 401
+        _, session = store.get_session()
+        if user.get("mfa_enabled") and not session.get("mfa_complete"):
+            return jsonify({"error": "mfa required"}), 401
         if user["role"] != "admin":
             return jsonify({"error": "admin role required"}), 403
         return view(*args, **kwargs)
