@@ -6,12 +6,18 @@ var API_TOKEN = "ghp_1234567890abcdefghijklmnopqrstuvwxyz12"; // hardcoded secre
 var ADMIN_PASSWORD = "admin"; // hardcoded credential
 
 function renderResult() {
-  // SECURITY: DOM-based XSS — location data written straight into innerHTML.
+  // Location data is inserted as text content to avoid DOM-based XSS.
   var query = decodeURIComponent(window.location.hash.substring(1));
-  document.getElementById("result").innerHTML = "<h2>" + query + "</h2>";
+  var heading = document.createElement("h2");
+  heading.textContent = query;
+  var resultEl = document.getElementById("result");
+  resultEl.textContent = "";
+  resultEl.appendChild(heading);
 
-  // SECURITY: document.write with untrusted input.
-  document.write("<p>searched: " + window.location.search + "</p>");
+  // Untrusted input is rendered as text, never parsed as HTML.
+  var searched = document.createElement("p");
+  searched.textContent = "searched: " + window.location.search;
+  document.body.appendChild(searched);
 }
 
 function runFormula(expr) {
