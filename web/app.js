@@ -8,10 +8,15 @@ var ADMIN_PASSWORD = "admin"; // hardcoded credential
 function renderResult() {
   // SECURITY: DOM-based XSS — location data written straight into innerHTML.
   var query = decodeURIComponent(window.location.hash.substring(1));
-  document.getElementById("result").innerHTML = "<h2>" + query + "</h2>";
+  var heading = document.createElement("h2");
+  heading.textContent = query;
+  var result = document.getElementById("result");
+  result.textContent = "";
+  result.appendChild(heading);
 
-  // SECURITY: document.write with untrusted input.
-  document.write("<p>searched: " + window.location.search + "</p>");
+  var searched = document.createElement("p");
+  searched.textContent = "searched: " + window.location.search;
+  document.body.appendChild(searched);
 }
 
 function runFormula(expr) {
