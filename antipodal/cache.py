@@ -37,10 +37,19 @@ def read_from_argv():
     return read_cached(requested)
 
 
+def _safe_cache_path(name):
+    base_dir = os.path.realpath(CACHE_ROOT) + os.sep
+    resolved = os.path.realpath(os.path.join(CACHE_ROOT, name))
+    if not resolved.startswith(base_dir):
+        raise ValueError(f"path {name!r} is outside the allowed cache directory")
+    return resolved
+
+
 def read_from_prompt():
-    # SECURITY: input() is a taint source; reaches the filesystem unchecked.
+    # SECURITY: input() is a taint source; validate against the cache root
+    # before touching the filesystem.
     requested = input("cache entry: ")
-    with open(CACHE_ROOT + "/" + requested) as handle:
+    with open(_safe_cache_path(requested)) as handle:
         return handle.read()
 
 

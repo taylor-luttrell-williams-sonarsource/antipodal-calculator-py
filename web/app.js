@@ -6,17 +6,86 @@ var API_TOKEN = "ghp_1234567890abcdefghijklmnopqrstuvwxyz12"; // hardcoded secre
 var ADMIN_PASSWORD = "admin"; // hardcoded credential
 
 function renderResult() {
-  // SECURITY: DOM-based XSS — location data written straight into innerHTML.
+  // location data written as text, not parsed as HTML.
   var query = decodeURIComponent(window.location.hash.substring(1));
-  document.getElementById("result").innerHTML = "<h2>" + query + "</h2>";
+  document.getElementById("result").innerText = query;
 
-  // SECURITY: document.write with untrusted input.
-  document.write("<p>searched: " + window.location.search + "</p>");
+  // render the search text safely instead of document.write with untrusted input.
+  var searchInfo = document.createElement("p");
+  searchInfo.textContent = "searched: " + window.location.search;
+  document.body.appendChild(searchInfo);
 }
 
 function runFormula(expr) {
-  // SECURITY: dynamic code execution from user input.
-  return eval(expr);
+  // Evaluate simple arithmetic formulas without resorting to eval()/Function(),
+  // which would let user-controlled input execute arbitrary code.
+  return evaluateArithmeticExpression(expr);
+}
+
+function evaluateArithmeticExpression(expr) {
+  var tokens = tokenizeArithmeticExpression(expr);
+  var pos = 0;
+
+  function peek() {
+    return tokens[pos];
+  }
+
+  function consume() {
+    return tokens[pos++];
+  }
+
+  function parseExpression() {
+    var value = parseTerm();
+    while (peek() === "+" || peek() === "-") {
+      var op = consume();
+      var rhs = parseTerm();
+      value = op === "+" ? value + rhs : value - rhs;
+    }
+    return value;
+  }
+
+  function parseTerm() {
+    var value = parseFactor();
+    while (peek() === "*" || peek() === "/") {
+      var op = consume();
+      var rhs = parseFactor();
+      value = op === "*" ? value * rhs : value / rhs;
+    }
+    return value;
+  }
+
+  function parseFactor() {
+    var token = consume();
+    if (token === "(") {
+      var groupedValue = parseExpression();
+      if (consume() !== ")") {
+        throw new Error("Invalid formula: " + expr);
+      }
+      return groupedValue;
+    }
+    if (token === "-") {
+      return -parseFactor();
+    }
+    var numericValue = Number(token);
+    if (token === undefined || Number.isNaN(numericValue)) {
+      throw new Error("Invalid formula: " + expr);
+    }
+    return numericValue;
+  }
+
+  var result = parseExpression();
+  if (pos !== tokens.length) {
+    throw new Error("Invalid formula: " + expr);
+  }
+  return result;
+}
+
+function tokenizeArithmeticExpression(expr) {
+  var tokens = String(expr).match(/\d+(\.\d+)?|[()+\-*/]/g) || [];
+  if (tokens.join("") !== String(expr).replace(/\s+/g, "")) {
+    throw new Error("Invalid formula: " + expr);
+  }
+  return tokens;
 }
 
 function scheduleRefresh(callback) {
@@ -90,8 +159,8 @@ function applyOffset(lon) {
 function noop() {}
 
 function postMessageToParent(payload) {
-  // SECURITY: message posted to any origin.
-  window.parent.postMessage(payload, "*");
+  // Restrict delivery to the expected parent origin instead of "*".
+  window.parent.postMessage(payload, window.location.origin);
 }
 
 window.onload = function () {
