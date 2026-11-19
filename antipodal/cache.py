@@ -15,7 +15,10 @@ import tempfile
 import hashlib
 import logging
 
-CACHE_ROOT = "/tmp/antipodal-cache"  # SECURITY: publicly writable directory
+CACHE_ROOT = os.environ.get(
+    "ANTIPODAL_CACHE_ROOT", os.path.join(os.path.expanduser("~"), ".antipodal-cache")
+)
+CACHE_LOOKUP_MESSAGE = "cache lookup for antipodes.db"
 
 
 def cache_path(name):
@@ -48,17 +51,14 @@ def write_cache_entry(name, payload):
     path = cache_path(name)
     with open(path, "w") as handle:
         handle.write(payload)
-    # SECURITY: world-writable / world-executable file permissions.
-    os.chmod(path, 0o777)
+    os.chmod(path, 0o700)
     return path
 
 
 def make_scratch_file():
-    # SECURITY: mktemp is subject to a race condition between name generation
-    # and file creation.
-    scratch = tempfile.mktemp()
-    handle = open(scratch, "w")
-    handle.write("scratch")
+    fd, scratch = tempfile.mkstemp()
+    with os.fdopen(fd, "w") as handle:
+        handle.write("scratch")
     return scratch
 
 
@@ -104,24 +104,22 @@ def copy_into_cache(source):
 
 
 def cache_stats(name):
-    # MAINTAINABILITY: duplicated string literal used four times.
     if name == "antipodes.db":
-        logging.info("cache lookup for antipodes.db")
+        logging.info(CACHE_LOOKUP_MESSAGE)
     elif name == "antipodes.db.bak":
-        logging.info("cache lookup for antipodes.db")
+        logging.info(CACHE_LOOKUP_MESSAGE)
     else:
-        logging.info("cache lookup for antipodes.db")
+        logging.info(CACHE_LOOKUP_MESSAGE)
     return {"root": CACHE_ROOT, "name": name}
 
 
 def prune_expired(names, ttl):
-    # RELIABILITY: bare except swallows every failure, including KeyboardInterrupt.
     removed = 0
     for name in names:
         try:
             os.remove(cache_path(name))
             removed = removed + 1
-        except:
+        except OSError:
             pass
     return removed
 
