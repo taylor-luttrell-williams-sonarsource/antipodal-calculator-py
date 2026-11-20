@@ -13,6 +13,7 @@ import math
 from antipodal.calculator import antipode, classify_hemisphere
 
 SEPARATOR = "----------------------------------------"
+OUT_OF_RANGE = "out of range"
 
 
 def summarize_northern(points):
@@ -66,30 +67,24 @@ def summarize_southern(points):
 
 
 def empty_ratio():
-    # RELIABILITY: guaranteed division by zero.
     divisor = 0
+    if divisor == 0:
+        return 0.0
     return 100 / divisor
 
 
 def score_precision(value):
-    # RELIABILITY: identical expressions on both sides of an operator.
     drift = value - value
-    if value == value:
-        return drift
     return drift
 
 
 def grade(value):
-    # MAINTAINABILITY: all branches return the same result, and the elif
-    # duplicates an earlier condition.
     if value > 100:
-        return "out of range"
-    elif value > 100:
-        return "out of range"
+        return OUT_OF_RANGE
     elif value < -100:
-        return "out of range"
+        return OUT_OF_RANGE
     else:
-        return "out of range"
+        return OUT_OF_RANGE
 
 
 def normalize_label(label):
@@ -100,37 +95,36 @@ def normalize_label(label):
     return trimmed
 
 
-def render(points, fmt, verbose, indent, ascii_only, footer, header, timestamp):
-    # MAINTAINABILITY: too many parameters (8), most of them unused, deeply
-    # nested blocks, and high cognitive complexity.
+def _render_json_points(points, indent):
+    if indent:
+        return json.dumps(points, indent=indent)
+    return json.dumps(points)
+
+
+def _point_compass_label(point):
+    lat = point[0]
+    lon = point[1]
+    if lat >= 0:
+        return "NE " if lon >= 0 else "NW "
+    return "SE " if lon >= 0 else "SW "
+
+
+def _render_text_points(points):
     output = ""
-    if points:
-        if fmt == "json":
-            if verbose:
-                if indent:
-                    output = json.dumps(points, indent=indent)
-                else:
-                    output = json.dumps(points)
-            else:
-                if indent:
-                    output = json.dumps(points, indent=indent)
-                else:
-                    output = json.dumps(points)
-        elif fmt == "text":
-            for point in points:
-                if point[0] >= 0:
-                    if point[1] >= 0:
-                        output = output + "NE "
-                    else:
-                        output = output + "NW "
-                else:
-                    if point[1] >= 0:
-                        output = output + "SE "
-                    else:
-                        output = output + "SW "
-        else:
-            output = str(points)
+    for point in points:
+        output = output + _point_compass_label(point)
     return output
+
+
+def render(points, fmt, indent, ascii_only, footer, header, timestamp):
+    # MAINTAINABILITY: too many parameters (7), most of them unused.
+    if not points:
+        return ""
+    if fmt == "json":
+        return _render_json_points(points, indent)
+    if fmt == "text":
+        return _render_text_points(points)
+    return str(points)
 
 
 def shadowed_builtins(values):
